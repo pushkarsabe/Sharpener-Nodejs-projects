@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+</head>
+
+<body>
+    <header class="container text-xl-center">
+        <div>
+            <h1>Book Managment</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <form id="my-form" onsubmit="submitData(event);" method="post">
+            <label name="bookName"></label>
+            <input type="text" id="bookName" placeholder="Please Enter Book Name">
+            <button class="btn-submit" type="submit">Submit</button>
+        </form>
+        <h2>Books List here</h2>
+        <ul id="BookDetails"></ul>
+
+        <h2>Returned Books List here</h2>
+        <ul id="ReturnBookDetails"></ul>
+    </div>
+
+    <script>
+        //will hold the value of id whenever user clicks on the edit button and will be used while updating
+        var expenseUpdateID = 0;
+        //to append the list of expenses to the list field
+        const bookList = document.querySelector('#BookDetails');
+        //will print the data form backend to frontend
+        function printUserDetails(result) {
+            console.log('id = ' + result.id);
+            console.log('res.bookName = ' + result.bookName);
+            console.log('result.bookTakenOn = ' + result.bookTakenOn);
+            console.log('result.bookReturnDate = ' + result.bookReturnDate);
+            console.log('result.currentFine = ' + result.currentFine);
+
+            const li = document.createElement('li');
+            li.appendChild(document.createTextNode(`Book Name = ${result.bookName}, Book Taken On = ${result.bookTakenOn}, Book Return Date =${result.bookReturnDate} , Book Current Fine = ${result.currentFine}`));
+            bookList.appendChild(li);
+
+            //for adding delete button functionality 
+            const delBtn = document.createElement('input');
+            delBtn.setAttribute('type', 'button');
+            delBtn.setAttribute('value', 'Return Book');
+            //setting id as an email of user so we can pass the value
+            delBtn.id = result.id;
+            delBtn.setAttribute('onclick', 'returnBook(this)');
+            li.appendChild(delBtn);
+            delBtn.style.margin = '10px';
+            delBtn.style.marginLeft = '10px';
+            delBtn.style.padding = '5px';
+            delBtn.style.fontSize = '15px';
+            delBtn.style.backgroundColor = '#333';
+            delBtn.style.color = 'white';
+        }
+
+        // this will load the data from database and will remain even after refresh
+        window.addEventListener('DOMContentLoaded', () => {
+            axios.get('http://localhost:3000/book/get-book')
+                .then(res => {
+                    console.log('inside DOMContentLoaded');
+                    console.log('res = ' + res);
+
+                    //now to print the data call another function
+                    for (let i = 0; i < res.data.BookData.length; i++) {
+                        printUserDetails(res.data.BookData[i]);
+                    }
+                })
+                .catch(err => {
+                    console.log('err = ' + err);
+                })
+        });
+
+        function submitData(e) {
+            e.preventDefault();
+
+            const bookName = document.querySelector('#bookName').value;
+            const currentDate = new Date();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1; // Month is zero-based, so add 1
+            const day = currentDate.getDate();
+            // Get the current time
+            const hours = currentDate.getHours();
+            const minutes = currentDate.getMinutes();
+            const seconds = currentDate.getSeconds();
+
+            // Display the date and time
+            console.log(`Current Date: ${year}-${month}-${day}`);
+            console.log(`Current Time: ${hours}:${minutes}:${seconds}`);
+
+            const bookTakenOn = year + '/' + month + '/' + day + '= ' + hours + ':' + minutes + ':' + seconds;
+            const bookReturnDate = year + '/' + month + '/' + day + '= ' + (hours + 1) + ':' + minutes + ':' + seconds;
+            const currentFine = 0;
+            const bookReturned = 'no';
+            console.log('bookTakenOn = ' + bookTakenOn);
+            console.log('bookReturnDate = ' + bookReturnDate);
+            console.log('currentFine = ' + currentFine);
+            console.log('bookReturned = ' + bookReturned);
+
+            //to add the new user details
+            const obj = {
+                bookName: bookName,
+                bookTakenOn: bookTakenOn,
+                bookReturnDate: bookReturnDate,
+                currentFine: currentFine,
+                bookReturned: bookReturned,
+            }
+            axios.post('http://localhost:3000/book/add-book', obj)
+                .then(res => {
+                    console.log(res.data);
+                    //to add the user details to the list on the HTML page
+                    //to set the data of list with required details
+                    const li = document.createElement('li');
+                    li.appendChild(document.createTextNode(`Book Name = ${res.data.newBookDetails.bookName}, Book Taken On = ${res.data.newBookDetails.bookTakenOn} , Book Return Date = ${res.data.newBookDetails.bookReturnDate} , Book Current Fine = ${res.data.newBookDetails.currentFine}`));
+                    bookList.appendChild(li);
+
+                    //for adding delete button functionality 
+                    const delBtn = document.createElement('input');
+                    delBtn.setAttribute('type', 'button');
+                    delBtn.setAttribute('value', 'Return Book');
+                    //setting id as an email of user so we can pass the value
+                    delBtn.id = res.data.newBookDetails.id;
+                    console.log('delBtn.id = ' + res.data.newBookDetails.id);
+                    delBtn.setAttribute('onclick', 'returnBook(this)');
+                    li.appendChild(delBtn);
+                    delBtn.style.margin = '10px';
+                    delBtn.style.marginLeft = '10px';
+                    delBtn.style.padding = '5px';
+                    delBtn.style.fontSize = '15px';
+                    delBtn.style.backgroundColor = '#333';
+                    delBtn.style.color = 'white';
+                })
+                .catch(err => console.log(err + ' error'));
+
+            //this needed to refresh the page so the values are submitted edit can also work
+            // location.reload();
+        }//submitUserDataBackend
+
+        function returnBook(data) {
+            console.log('data id = ' + data.id);
+            //delete from backend =  mysql, node
+
+            axios.get('http://localhost:3000/book/get-book/' + data.id)
+                .then(res => {
+                    console.log(res);
+                    console.log('data = ' + JSON.stringify(res.data.particularData));
+                    // const data = JSON.stringify(res.data.particularData);
+                    for (let i = 0; i < res.data.particularData.length; i++) {
+                        fetchBookDetails(res.data.particularData[i]);
+                    }
+                    console.log('inside return');
+                }).catch(err => console.log(err + ' error'));
+
+        }//returnBook
+
+
+        function fetchBookDetails(result) {
+            console.log('inside fetchBookDetails');
+            const returningDate = new Date();
+            const day = returningDate.getDate();
+            const hours = returningDate.getHours();
+            console.log('date and time while returnin the book = ' + day + " & " + hours);
+
+            console.log('book id = ' + result.id);
+            console.log('res.bookName = ' + result.bookName);
+            console.log('result.bookTakenOn = ' + result.bookTakenOn);
+            console.log('result.bookReturnDate = ' + result.bookReturnDate);
+            console.log('result.currentFine = ' + result.currentFine);
+
+            var returnBookTimeString = result.bookReturnDate.split('=')[1];
+            console.log('returnBookTimeString = ' + returnBookTimeString);
+            var returnBookTimeHour = returnBookTimeString.split(':')[0];
+            console.log('returnBookTimeHour = ' + returnBookTimeHour);
+
+            //check for the time and add penamlty as per time
+            // var penalty = 0;
+            // if (hours > returnBookTimeHour) {
+            //     console.log('penalty needs to be added');
+            //     var differenceInTimeHour = hours - returnBookTimeHour;
+            //     console.log('differenceInTimeHour = ' + differenceInTimeHour);
+            //     if (differenceInTimeHour != 0) {
+            //         penalty = differenceInTimeHour * 10;
+            //     }
+            //     //update penalty in backend with new penalty 
+            //     updatePenalty(result.id, result.bookName, result.bookTakenOn, result.bookReturnDate, penalty);
+
+            // } else {
+            //     console.log('no penalty needs to be added');
+
+            // }
+            //to check
+            updatePenalty(result.id, result.bookName, result.bookTakenOn, result.bookReturnDate, 50);
+
+        }//editExpense
+
+        function updatePenalty(id, bookName, bookTakenOn, bookReturnDate, penalty) {
+            console.log('inside updatePenalty');
+            console.log('book id = ' + id);
+            console.log('bookName = ' + rbookName);
+            console.log('bookTakenOn = ' + bookTakenOn);
+            console.log('bookReturnDate = ' + bookReturnDate);
+            console.log('currentFine = ' + currentFine);
+
+            const newUpdateValueObj = {
+                id: id,
+                bookName: bookName,
+                bookTakenOn: bookTakenOn,
+                bookReturnDate: bookReturnDate,
+                currentFine: penalty
+            }
+            //here you have send the new updated obj not to append with +
+            axios.put(`http://localhost:3000/book/update-book`, newUpdateValueObj)
+                .then(res => {
+                    console.log('Update successful', res.data.message);
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+            //this needed to refresh the page so the values inside list are also updated
+            location.reload();
+            // amount = "";
+            // description = "";
+            // option = "";
+
+
+        }//updateExpense
+    </script>
+</body>
+
+</html>
