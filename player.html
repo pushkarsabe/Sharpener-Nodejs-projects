@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <link rel="stylesheet" href="style.css"> -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+</head>
+
+<body>
+    <header>
+        <div>
+            <h1>Book Managment</h1>
+        </div>
+    </header>
+
+    <div class="container">
+        <form id="my-form">
+            <label>Enter Name</label>
+            <input type="text" id="name" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="dateOfBirth">Enter date of birth</label>
+            <input type="date" id="dateOfBirth" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="photoUrl">Enter photo url</label>
+            <input type="text" id="photoUrl" placeholder="Please Enter Book Name">
+            <br><br>
+            <label>Enter birth place</label>
+            <input type="text" id="birthPlace" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="career">Enter career details</label>
+            <input type="text" id="career" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="numberOfMatches">Enter Number of matches</label>
+            <input type="number" id="numberOfMatches" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="score">Enter score</label>
+            <input type="number" id="score" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="fifties">Enter fifties</label>
+            <input type="number" id="fifties" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="centuries">Enter centuries</label>
+            <input type="number" id="centuries" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="wickets">Enter wickets</label>
+            <input type="number" id="wickets" placeholder="Please Enter Book Name">
+            <br><br>
+            <label name="average">Enter average</label>
+            <input type="number" id="average" placeholder="Please Enter Book Name">
+            <br><br>
+            <button class="btn-submit" onclick="submitData(event);" type="submit">Submit</button>
+            <br>
+        </form>
+
+        <br>
+        <input type="text" id="search" placeholder="Please Enter player Name">
+        <button class="btn-submit" onclick="submitName(event);" type="button">Search</button>
+
+        <h2>Player details here</h2>
+        <ul id="PlayerDetails"></ul>
+        <hr>
+    </div>
+
+    <script>
+        //will hold the value of id whenever user clicks on the edit button and will be used while updating
+        var expenseUpdateID = 0;
+        //to append the list of books yet to be returned
+        const playerList = document.querySelector('#PlayerDetails');
+
+        function submitName(event) {
+            event.preventDefault();
+            console.log('inside submitName ');
+            var searchName = document.getElementById('search').value;
+            console.log('searchName = ' + searchName);
+            axios.get('http://localhost:3000/player/get-player/' + searchName)
+                .then(res => {
+                    console.log(res);
+                    console.log('data = ' + JSON.stringify(res.data.particularData));
+                    // const data = JSON.stringify(res.data.particularData);
+                    for (let i = 0; i < res.data.particularData.length; i++) {
+                        printPlayerDeatails(res.data.particularData[i]);
+                    }
+                    console.log('inside return');
+                }).catch(err => console.log(err + ' error'));
+
+            searchName = "";
+
+        }//submitName
+
+
+        function submitData(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get values from the form
+            const name = document.getElementById('name').value;
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            const photoUrl = document.getElementById('photoUrl').value;
+            const birthPlace = document.getElementById('birthPlace').value;
+            const career = document.getElementById('career').value;
+            const numberOfMatches = document.getElementById('numberOfMatches').value;
+            const score = document.getElementById('score').value;
+            const fifties = document.getElementById('fifties').value;
+            const centuries = document.getElementById('centuries').value;
+            const wickets = document.getElementById('wickets').value;
+            const average = document.getElementById('average').value;
+
+            // Log the values to the console (you can replace this with your actual logic)
+            console.log('Name:', name);
+            console.log('Date of Birth:', dateOfBirth);
+            console.log('Photo URL:', photoUrl);
+            console.log('birthPlace:', birthPlace);
+            console.log('Career Details:', career);
+            console.log('Number of Matches:', numberOfMatches);
+            console.log('Score:', score);
+            console.log('Fifties:', fifties);
+            console.log('Centuries:', centuries);
+            console.log('Wickets:', wickets);
+            console.log('Average:', average);
+
+            //to add the new user details
+            const obj = {
+                name: name,
+                dateOfBirth: dateOfBirth,
+                photoUrl: photoUrl,
+                birthPlace: birthPlace,
+                career: career,
+                numberOfMatches: numberOfMatches,
+                score: score,
+                career: career,
+                fifties: fifties,
+                centuries: centuries,
+                wickets: wickets,
+                average: average,
+            }
+            axios.post('http://localhost:3000/player/add-player', obj)
+                .then(res => {
+                    console.log(res.data);
+                    console.log('inside submitData');
+
+                })
+                .catch(err => console.log(err + ' error'));
+
+            // bookName = '';
+            // location.reload();
+        }//submitUserDataBackend
+
+
+        //will fetch the hour of time of return and time when the user submitted and calculate penalty
+        function printPlayerDeatails(result) {
+            console.log('inside printPlayerDeatails');
+            console.log('Name:', result.name);
+            console.log('Date of Birth:', result.dateOfBirth);
+            console.log('Photo URL:', result.photoUrl);
+            console.log('Birthplace:', result.birthPlace);
+            console.log('Career Details:', result.career);
+            console.log('Number of Matches:', result.numberOfMatches);
+            console.log('Score:', result.score);
+            console.log('Fifties:', result.fifties);
+            console.log('Centuries:', result.centuries);
+            console.log('Wickets:', result.wickets);
+            console.log('Average:', result.average);
+
+            const li = document.createElement('li');
+            li.appendChild(document.createTextNode(`Player Name = ${result.name}, Date of Birth = ${result.dateOfBirth} , Photo URL = ${result.photoUrl} , Birthplace = ${result.Birthplace},
+            Career Details = ${result.career}, Number of Matches = ${result.numberOfMatches},  Score = ${result.score},  Fifties = ${result.fifties},  Centuries = ${result.centuries}, Wickets = ${result.wickets}, , Average = ${result.average}`));
+            playerList.appendChild(li);
+
+            //for adding delete button functionality 
+            const delBtn = document.createElement('input');
+            delBtn.setAttribute('type', 'button');
+            delBtn.setAttribute('value', 'Edit Palyer');
+            //setting id as an email of user so we can pass the value
+            delBtn.id = result.id;
+            console.log('delBtn.id = ' + res.data.newBookDetails.id);
+            delBtn.addEventListener('click', function () {
+                editPlayerData(result.id, result.name, result.dateOfBirth, result.photoUrl, result.Birthplace, result.career, result.numberOfMatches, result.score, result.fifties, result.centuries, result.wickets, result.average);
+            });
+
+            li.appendChild(delBtn);
+            delBtn.style.margin = '10px';
+            delBtn.style.marginLeft = '10px';
+            delBtn.style.padding = '5px';
+            delBtn.style.fontSize = '15px';
+            delBtn.style.backgroundColor = '#333';
+            delBtn.style.color = 'white';
+
+        }//fetchBookDetails
+
+        //will update the penalty of the book
+        function editPlayerData(id, name, dateOfBirth, photoUrl, Birthplace, career, numberOfMatches, score, fifties, centuries, wickets, average) {
+            console.log('inside editPlayerData');
+            console.log('book id = ' + id);
+            console.log('Name:', name);
+            console.log('Date of Birth:', dateOfBirth);
+            console.log('Photo URL:', photoUrl);
+            console.log('Birthplace:', birthPlace);
+            console.log('Career Details:', career);
+            console.log('Number of Matches:', numberOfMatches);
+            console.log('Score:', score);
+            console.log('Fifties:', fifties);
+            console.log('Centuries:', centuries);
+            console.log('Wickets:', wickets);
+            console.log('Average:', average);
+
+            document.getElementById('name').value = name = name;
+            document.getElementById('dateOfBirth').value = dateOfBirth;
+            document.getElementById('photoUrl').value = photoUrl;
+            document.getElementById('birthPlace').value = birthPlace;
+            document.getElementById('career').value = career;
+            document.getElementById('numberOfMatches').value = numberOfMatches;
+            document.getElementById('score').value = score;
+            document.getElementById('fifties').value = fifties;
+            document.getElementById('centuries').value = centuries;
+            document.getElementById('wickets').value = wickets;
+            document.getElementById('average').value = average;
+
+            // const newUpdateValueObj = {
+            //     id: id,
+            //     bookName: bookName,
+            //     bookTakenOn: bookTakenOn,
+            //     bookReturnDate: bookReturnDate,
+            //     currentFine: penalty,
+            // }
+            // //here you have send the new updated obj not to append with +
+            // axios.put(`http://localhost:3000/book/update-book`, newUpdateValueObj)
+            //     .then(res => {
+            //         console.log('Update successful', res.data.message);
+            //     })
+            //     .catch(err => {
+            //         console.log(err);
+            //     });  
+            //this needed to refresh the page so the values inside list are also updated
+            location.reload();
+        }//updatePenalty
+
+    </script>
+</body>
+
+</html>
