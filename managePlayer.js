@@ -67,19 +67,7 @@ exports.getOnePlayer = async (req, res, next) => {
             res.status(200).json({ particularData: particularPlayerData });
     }
     catch (err) {
-        console.log('Get book is failing' + JSON.stringify(err));
-        res.status(500).json({ error: err });
-    }
-}
-
-exports.getAllPlayers = async (req, res, next) => {
-    try {
-        const bookData = await Player.findAll();
-        console.log('bookData = ' + JSON.stringify(bookData));
-        res.status(200).json({ BookData: bookData });
-    }
-    catch (err) {
-        console.log('Get book is failing' + JSON.stringify(err));
+        console.log('Get player is failing' + JSON.stringify(err));
         res.status(500).json({ error: err });
     }
 }
@@ -87,31 +75,31 @@ exports.getAllPlayers = async (req, res, next) => {
 exports.updatePlayer = async (req, res, next) => {
     try {
         const updatedData = req.body;
-        const bookUpdateId = updatedData.id;
+        const playerUpdateId = updatedData.id;
         console.log('updatedData = ' + JSON.stringify(updatedData));
-        console.log('bookUpdateId = ' + bookUpdateId);
+        console.log('playerUpdateId = ' + playerUpdateId);
 
         //return statement is important otherwise other code will gte executed and will throw error
-        if (bookUpdateId === '' || bookUpdateId === undefined || bookUpdateId === 0) {
+        if (playerUpdateId === '' || playerUpdateId === undefined || playerUpdateId === 0) {
             return res.status(500).json({ error: 'ID not found' });
         }
         //to check if the id is valid or not 
-        const existingBook = await Book.findByPk(bookUpdateId);
-        console.log('existingBook = ' + existingBook);
+        const existingPlayer = await Player.findByPk(playerUpdateId);
+        console.log('existingPlayer = ' + existingPlayer);
 
-        //to check if the if existingBook is real or not
+        //to check if the if existingPlayer is real or not
         //return statement is important otherwise other code will gte executed and will throw error
-        if (!existingBook || existingBook === null) {
-            return res.status(500).json({ error: 'book not found' });
+        if (!existingPlayer || existingPlayer === null) {
+            return res.status(500).json({ error: 'Player not found' });
         }
         //updateExpense is built in function to update the data using sequelize
         //which takes updated object and the where clause
-        const result = await Book.update(updatedData, { where: { id: bookUpdateId } });
+        const result = await Player.update(updatedData, { where: { id: playerUpdateId } });
         //after updating send the response
-        res.status(200).json({ message: 'Book updated successfully', result });
+        res.status(200).json({ message: 'Player updated successfully', result });
     }
     catch (err) {
-        console.log('Error updating book ' + err);
+        console.log('Error updating player ' + err);
         res.status(500).json({ error: err });
     }
 }

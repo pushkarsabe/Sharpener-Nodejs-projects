@@ -5,14 +5,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+        }
+
+        input {
+            width: 40%;
+            /* Make the input fields take full width */
+            padding: 8px;
+            /* Adjust the padding as needed */
+            box-sizing: border-box;
+            /* Include padding in the width calculation */
+            margin-bottom: 16px;
+            /* Adjust the bottom margin as needed */
+        }
+
+        .container {
+            margin: 30px 40px;
+        }
+
+        .form-select {
+            padding: 2px;
+        }
+
+        #usersExpenses {
+            background-color: aliceblue;
+        }
+
+        .btn-submit {
+            padding: 10px 15px;
+            margin-left: 100px;
+        }
+
+        header {
+            display: flex;
+            justify-content: center;
+            background-color: aliceblue;
+        }
+
+        #my-form {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            background-color: beige;
+            margin: 5px;
+            padding: 5px;
+            border-radius: 8px;
+            padding-left: 50px;
+            margin-bottom: 35px;
+            margin-top: 20px;
+        }
+
+        lable {
+            display: block;
+            /* Make labels block-level for vertical stacking */
+            margin-bottom: 8px;
+            /* Adjust the bottom margin as needed */
+        }
+
+        .player-card {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            max-width: 400px;
+            display: inline-block;
+        }
+
+        .player-card-button {
+            padding: 5px;
+            font-size: medium;
+        }
+
+        .btn-update {
+            margin-left: 200px;
+            padding: 10px;
+        }
+    </style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
 </head>
 
 <body>
-    <header class="container text-xl-center">
+    <header>
         <div>
-            <h1>Book Managment</h1>
+            <h1>Book Management Library</h1>
         </div>
     </header>
 
@@ -22,216 +108,271 @@
             <input type="text" id="bookName" placeholder="Please Enter Book Name">
             <button class="btn-submit" type="submit">Submit</button>
         </form>
-        <h2>Books List here</h2>
-        <ul id="BookDetails"></ul>
-
+        <h2>Taken Books List here</h2>
+        <div id="BookDetails"></div>
+        <hr>
+        <br>
+        <hr>
         <h2>Returned Books List here</h2>
-        <ul id="ReturnBookDetails"></ul>
+        <div id="ReturnBookDetails"></div>
+        <hr>
     </div>
 
     <script>
-        //will hold the value of id whenever user clicks on the edit button and will be used while updating
-        var expenseUpdateID = 0;
-        //to append the list of expenses to the list field
+        //to append the list of books yet to be returned
         const bookList = document.querySelector('#BookDetails');
-        //will print the data form backend to frontend
+
+        const bookListReturned = document.querySelector('#ReturnBookDetails');
+
+        //will print the data form backend to frontend and also filter them based on wheather they are returned or not
         function printUserDetails(result) {
+            console.log('inside printUserDetails');
             console.log('id = ' + result.id);
             console.log('res.bookName = ' + result.bookName);
             console.log('result.bookTakenOn = ' + result.bookTakenOn);
             console.log('result.bookReturnDate = ' + result.bookReturnDate);
             console.log('result.currentFine = ' + result.currentFine);
+            console.log('result.bookReturned = ' + result.bookReturned);
 
-            const li = document.createElement('li');
-            li.appendChild(document.createTextNode(`Book Name = ${result.bookName}, Book Taken On = ${result.bookTakenOn}, Book Return Date =${result.bookReturnDate} , Book Current Fine = ${result.currentFine}`));
-            bookList.appendChild(li);
+            const bookData = {
+                bookName: result.bookName,
+                bookTakenOn: result.bookTakenOn,
+                bookReturnDate: result.bookReturnDate,
+                currentFine: result.currentFine,
+                bookReturned: result.bookReturned,
+            }
+            const bookCard = document.createElement('div');
+            bookCard.classList.add('player-card');
 
-            //for adding delete button functionality 
-            const delBtn = document.createElement('input');
-            delBtn.setAttribute('type', 'button');
-            delBtn.setAttribute('value', 'Return Book');
-            //setting id as an email of user so we can pass the value
-            delBtn.id = result.id;
-            delBtn.setAttribute('onclick', 'returnBook(this)');
-            li.appendChild(delBtn);
-            delBtn.style.margin = '10px';
-            delBtn.style.marginLeft = '10px';
-            delBtn.style.padding = '5px';
-            delBtn.style.fontSize = '15px';
-            delBtn.style.backgroundColor = '#333';
-            delBtn.style.color = 'white';
-        }
+            // books are displayed which are not returned by the user
+            if (result.bookReturned === 'no') {
+                bookCard.innerHTML = `<h2>Book Name : ${bookData.bookName}</h2>
+                <p><strong>Book Taken on :</strong> ${bookData.bookTakenOn}</p>
+                <p><strong>Book return date :</strong> ${bookData.bookReturnDate}</p>          
+                <p><strong>Penalty :</strong> ${bookData.currentFine}</p>
+                <button id='${result.id}' onclick="returnBook('${result.id}','${bookData.bookName}','${bookData.bookTakenOn}','${bookData.bookReturnDate}','${bookData.currentFine}');" type="button" style="font-size:medium;padding: 10px;margin-left: 114px;margin-top: 10px;">Return Book</button>
+                `;
+                bookList.appendChild(bookCard);
+            }
+            // books are displayed which are returned by the user
+            else {
+
+                bookCard.innerHTML = `<h2>Book Name : ${bookData.bookName}</h2>
+                <p><strong>Book Taken on :</strong> ${bookData.bookTakenOn}</p>
+                <p><strong>Book return date :</strong> ${bookData.bookReturnDate}</p>          
+                <p><strong>Penalty :</strong> ${bookData.currentFine}</p>
+                <button id='${result.id}' onclick="returnBook('${result.id}','${bookData.bookName}','${bookData.bookTakenOn}','${bookData.bookReturnDate}','${bookData.currentFine}');"
+                `;
+                bookListReturned.appendChild(bookCard);
+            }
+
+        } printUserDetails
 
         // this will load the data from database and will remain even after refresh
-        window.addEventListener('DOMContentLoaded', () => {
-            axios.get('http://localhost:3000/book/get-book')
-                .then(res => {
-                    console.log('inside DOMContentLoaded');
-                    console.log('res = ' + res);
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await axios.get('http://localhost:3000/book/get-book');
 
-                    //now to print the data call another function
-                    for (let i = 0; i < res.data.BookData.length; i++) {
-                        printUserDetails(res.data.BookData[i]);
-                    }
-                })
-                .catch(err => {
-                    console.log('err = ' + err);
-                })
+                console.log('inside DOMContentLoaded');
+                console.log('res = ' + JSON.stringify(res.data.BookData));
+                //now to print the data call another function
+                for (let i = 0; i < res.data.BookData.length; i++) {
+                    printUserDetails(res.data.BookData[i]);
+                }
+            }
+            catch (err) {
+                console.log(err);
+            };
         });
 
-        function submitData(e) {
+        //catches the input sent by the user and submits it to the database 
+        async function submitData(e) {
             e.preventDefault();
+            try {
+                console.log('inside submitData');
 
-            const bookName = document.querySelector('#bookName').value;
-            const currentDate = new Date();
-            const year = currentDate.getFullYear();
-            const month = currentDate.getMonth() + 1; // Month is zero-based, so add 1
-            const day = currentDate.getDate();
-            // Get the current time
-            const hours = currentDate.getHours();
-            const minutes = currentDate.getMinutes();
-            const seconds = currentDate.getSeconds();
+                var bookName = document.querySelector('#bookName').value;
+                const currentDate = new Date();
 
-            // Display the date and time
-            console.log(`Current Date: ${year}-${month}-${day}`);
-            console.log(`Current Time: ${hours}:${minutes}:${seconds}`);
+                const bookTakenOn = currentDate.getFullYear() + '/' + currentDate.getMonth() + '/' + currentDate.getDate() + '= ' + currentDate.getHours() + ':' + currentDate.getMinutes() + ':' + currentDate.getSeconds();
 
-            const bookTakenOn = year + '/' + month + '/' + day + '= ' + hours + ':' + minutes + ':' + seconds;
-            const bookReturnDate = year + '/' + month + '/' + day + '= ' + (hours + 1) + ':' + minutes + ':' + seconds;
-            const currentFine = 0;
-            const bookReturned = 'no';
-            console.log('bookTakenOn = ' + bookTakenOn);
-            console.log('bookReturnDate = ' + bookReturnDate);
-            console.log('currentFine = ' + currentFine);
-            console.log('bookReturned = ' + bookReturned);
+                const bookReturnDate = currentDate.getFullYear() + '/' + currentDate.getMonth() + '/' + currentDate.getDate() + '= ' + (currentDate.getHours() + 1) + ':' + currentDate.getMinutes() + ':' + currentDate.getSeconds();
 
-            //to add the new user details
-            const obj = {
-                bookName: bookName,
-                bookTakenOn: bookTakenOn,
-                bookReturnDate: bookReturnDate,
-                currentFine: currentFine,
-                bookReturned: bookReturned,
+                const currentFine = 0;
+                const bookReturned = 'no';
+                console.log('bookName = ' + bookName);
+                console.log('bookTakenOn = ' + bookTakenOn);
+                console.log('bookReturnDate = ' + bookReturnDate);
+                console.log('currentFine = ' + currentFine);
+                console.log('bookReturned = ' + bookReturned);
+
+                //to add the new user details
+                const bookData = {
+                    bookName: bookName,
+                    bookTakenOn: bookTakenOn,
+                    bookReturnDate: bookReturnDate,
+                    currentFine: currentFine,
+                    bookReturned: bookReturned,
+                }
+                const res = await axios.post('http://localhost:3000/book/add-book', bookData);
+                console.log(res.data);
+                const bookCard = document.createElement('div');
+                bookCard.classList.add('player-card');
+
+                bookCard.innerHTML = `<h2>Book Name : ${bookData.bookName}</h2>
+                    <p><strong>Book Taken on:</strong> ${bookData.bookTakenOn}</p>
+                    <p><strong>Book return date :</strong> ${bookData.bookReturnDate}</p>          
+                    <p><strong>Penalty :</strong> ${bookData.currentFine}</p>
+                    <button id='${res.data.newBookDetails.id}' onclick="returnBook('${res.data.newBookDetails.id}','${bookData.bookName}','${bookData.bookTakenOn}','${bookData.bookReturnDate}','${bookData.currentFine}');" type="button" style="font-size:medium;padding: 10px;margin-left: 114px;margin-top: 10px;">Return Book</button>`;
+
+                bookList.appendChild(bookCard);
+                bookName.value = '';
             }
-            axios.post('http://localhost:3000/book/add-book', obj)
-                .then(res => {
-                    console.log(res.data);
-                    //to add the user details to the list on the HTML page
-                    //to set the data of list with required details
-                    const li = document.createElement('li');
-                    li.appendChild(document.createTextNode(`Book Name = ${res.data.newBookDetails.bookName}, Book Taken On = ${res.data.newBookDetails.bookTakenOn} , Book Return Date = ${res.data.newBookDetails.bookReturnDate} , Book Current Fine = ${res.data.newBookDetails.currentFine}`));
-                    bookList.appendChild(li);
-
-                    //for adding delete button functionality 
-                    const delBtn = document.createElement('input');
-                    delBtn.setAttribute('type', 'button');
-                    delBtn.setAttribute('value', 'Return Book');
-                    //setting id as an email of user so we can pass the value
-                    delBtn.id = res.data.newBookDetails.id;
-                    console.log('delBtn.id = ' + res.data.newBookDetails.id);
-                    delBtn.setAttribute('onclick', 'returnBook(this)');
-                    li.appendChild(delBtn);
-                    delBtn.style.margin = '10px';
-                    delBtn.style.marginLeft = '10px';
-                    delBtn.style.padding = '5px';
-                    delBtn.style.fontSize = '15px';
-                    delBtn.style.backgroundColor = '#333';
-                    delBtn.style.color = 'white';
-                })
-                .catch(err => console.log(err + ' error'));
-
-            //this needed to refresh the page so the values are submitted edit can also work
-            // location.reload();
+            catch (err) {
+                console.log(err);
+            }
         }//submitUserDataBackend
 
-        function returnBook(data) {
-            console.log('data id = ' + data.id);
-            //delete from backend =  mysql, node
+        //once user clicks on return function this function will callupdatePenalty if any otherwise call update updateReturned function
+        async function returnBook(id, bookName, bookTakenOn, bookReturnDate, currentFine) {
+            try {
+                console.log('inside returnBook');
+                console.log('data id = ' + id);
+                console.log('bookName = ' + bookName);
+                console.log('result.bookTakenOn = ' + bookTakenOn);
+                console.log('bookReturnDate = ' + bookReturnDate);
+                console.log('currentFine = ' + currentFine);
+                //delete from backend =  mysql, node
+                // if fine is zero then return it directly
+                if (currentFine === 0) {
+                    const returningDate = new Date();
+                    const day = returningDate.getDate();
+                    const hours = returningDate.getHours();
+                    console.log('date and time while returnin the book = ' + day + " & " + hours);
 
-            axios.get('http://localhost:3000/book/get-book/' + data.id)
-                .then(res => {
-                    console.log(res);
-                    console.log('data = ' + JSON.stringify(res.data.particularData));
-                    // const data = JSON.stringify(res.data.particularData);
-                    for (let i = 0; i < res.data.particularData.length; i++) {
-                        fetchBookDetails(res.data.particularData[i]);
+                    var returnBookTimeString = bookReturnDate.split('=')[1];
+                    console.log('returnBookTimeString = ' + returnBookTimeString);
+                    var returnBookTimeHour = returnBookTimeString.split(':')[0];
+                    console.log('returnBookTimeHour = ' + returnBookTimeHour);
+
+                    // check for the time and add penamlty as per time
+                    var penalty = 0;
+                    if (hours > returnBookTimeHour) {
+                        console.log('penalty needs to be added');
+                        var differenceInTimeHour = hours - returnBookTimeHour;
+                        console.log('differenceInTimeHour = ' + differenceInTimeHour);
+                        if (differenceInTimeHour != 0) {
+                            penalty = differenceInTimeHour * 10;
+                        }
+                        //update penalty in backend with new penalty 
+                        updatePenalty(id, bookName, bookTakenOn, bookReturnDate, penalty);
+
+                    } else {
+                        console.log('no penalty needs to be added');
+                        //update returned columnn inside the database to yes 
+                        updateReturned(id, bookName, bookTakenOn, bookReturnDate, currentFine);
                     }
-                    console.log('inside return');
-                }).catch(err => console.log(err + ' error'));
+                }
+
+                const userConfirmed = confirm(`Do you want to return this book and pay fine ${currentFine} ?`);
+                if (userConfirmed) {
+
+                    console.log('inside userConfirmed');
+                    const returningDate = new Date();
+                    const day = returningDate.getDate();
+                    const hours = returningDate.getHours();
+                    console.log('date and time while returnin the book = ' + day + " & " + hours);
+
+                    var returnBookTimeString = bookReturnDate.split('=')[1];
+                    console.log('returnBookTimeString = ' + returnBookTimeString);
+                    var returnBookTimeHour = returnBookTimeString.split(':')[0];
+                    console.log('returnBookTimeHour = ' + returnBookTimeHour);
+
+                    // check for the time and add penamlty as per time
+                    var penalty = 0;
+                    if (hours > returnBookTimeHour) {
+                        console.log('penalty needs to be added');
+                        var differenceInTimeHour = hours - returnBookTimeHour;
+                        console.log('differenceInTimeHour = ' + differenceInTimeHour);
+                        if (differenceInTimeHour != 0) {
+                            penalty = differenceInTimeHour * 10;
+                        }
+                        //update penalty in backend with new penalty 
+                        updatePenalty(id, bookName, bookTakenOn, bookReturnDate, penalty);
+
+                    } else {
+                        console.log('no penalty needs to be added');
+                        //update returned columnn inside the database to yes 
+                        updateReturned(id, bookName, bookTakenOn, bookReturnDate, currentFine);
+                    }
+
+                }
+                else {
+                    console.log('User chose not to return the book.');
+                }
+            } catch (err) {
+                console.log(err);
+            }
 
         }//returnBook
 
+        //will update the penalty of a book
+        async function updatePenalty(id, bookName, bookTakenOn, bookReturnDate, penalty) {
+            try {
+                console.log('inside updatePenalty');
+                console.log('book id = ' + id);
+                console.log('bookName = ' + bookName);
+                console.log('bookTakenOn = ' + bookTakenOn);
+                console.log('bookReturnDate = ' + bookReturnDate);
+                console.log('currentFine = ' + penalty);
 
-        function fetchBookDetails(result) {
-            console.log('inside fetchBookDetails');
-            const returningDate = new Date();
-            const day = returningDate.getDate();
-            const hours = returningDate.getHours();
-            console.log('date and time while returnin the book = ' + day + " & " + hours);
+                const newUpdateValueObj = {
+                    id: id,
+                    bookName: bookName,
+                    bookTakenOn: bookTakenOn,
+                    bookReturnDate: bookReturnDate,
+                    currentFine: penalty,
+                }
+                //here you have send the new updated obj not to append with +
+                const res = await axios.put(`http://localhost:3000/book/update-book`, newUpdateValueObj);
+                console.log(res.data.message);
 
-            console.log('book id = ' + result.id);
-            console.log('res.bookName = ' + result.bookName);
-            console.log('result.bookTakenOn = ' + result.bookTakenOn);
-            console.log('result.bookReturnDate = ' + result.bookReturnDate);
-            console.log('result.currentFine = ' + result.currentFine);
-
-            var returnBookTimeString = result.bookReturnDate.split('=')[1];
-            console.log('returnBookTimeString = ' + returnBookTimeString);
-            var returnBookTimeHour = returnBookTimeString.split(':')[0];
-            console.log('returnBookTimeHour = ' + returnBookTimeHour);
-
-            //check for the time and add penamlty as per time
-            // var penalty = 0;
-            // if (hours > returnBookTimeHour) {
-            //     console.log('penalty needs to be added');
-            //     var differenceInTimeHour = hours - returnBookTimeHour;
-            //     console.log('differenceInTimeHour = ' + differenceInTimeHour);
-            //     if (differenceInTimeHour != 0) {
-            //         penalty = differenceInTimeHour * 10;
-            //     }
-            //     //update penalty in backend with new penalty 
-            //     updatePenalty(result.id, result.bookName, result.bookTakenOn, result.bookReturnDate, penalty);
-
-            // } else {
-            //     console.log('no penalty needs to be added');
-
-            // }
-            //to check
-            updatePenalty(result.id, result.bookName, result.bookTakenOn, result.bookReturnDate, 50);
-
-        }//editExpense
-
-        function updatePenalty(id, bookName, bookTakenOn, bookReturnDate, penalty) {
-            console.log('inside updatePenalty');
-            console.log('book id = ' + id);
-            console.log('bookName = ' + rbookName);
-            console.log('bookTakenOn = ' + bookTakenOn);
-            console.log('bookReturnDate = ' + bookReturnDate);
-            console.log('currentFine = ' + currentFine);
-
-            const newUpdateValueObj = {
-                id: id,
-                bookName: bookName,
-                bookTakenOn: bookTakenOn,
-                bookReturnDate: bookReturnDate,
-                currentFine: penalty
+                //this needed to refresh the page so the values inside list are also updated
+                location.reload();
             }
-            //here you have send the new updated obj not to append with +
-            axios.put(`http://localhost:3000/book/update-book`, newUpdateValueObj)
-                .then(res => {
-                    console.log('Update successful', res.data.message);
-                })
-                .catch(err => {
-                    console.log(err);
-                });
-            //this needed to refresh the page so the values inside list are also updated
-            location.reload();
-            // amount = "";
-            // description = "";
-            // option = "";
+            catch (err) {
+                console.log(err);
+            };
+        }//updatePenalty
 
-
-        }//updateExpense
+        //will update the penalty the rteurned column of the book table to yes
+        async function updateReturned(id, bookName, bookTakenOn, bookReturnDate, currentFine) {
+            try {
+                console.log('inside updatePenalty');
+                console.log('book id = ' + id);
+                console.log('bookName = ' + bookName);
+                console.log('bookTakenOn = ' + bookTakenOn);
+                console.log('bookReturnDate = ' + bookReturnDate);
+                console.log('currentFine = ' + currentFine);
+                const bookReturned = 'yes';
+                const newUpdateValueObj = {
+                    id: id,
+                    bookName: bookName,
+                    bookTakenOn: bookTakenOn,
+                    bookReturnDate: bookReturnDate,
+                    currentFine: currentFine,
+                    bookReturned: bookReturned,
+                }
+                //here you have send the new updated obj not to append with +
+                const res = await axios.put(`http://localhost:3000/book/update-book`, newUpdateValueObj);
+                console.log('Update successful', res.data.message);
+                //this needed to refresh the page so the values inside list are also updated
+                location.reload();
+            }
+            catch (err) {
+                console.log(err);
+            };
+        }//updateReturned
     </script>
 </body>
 
